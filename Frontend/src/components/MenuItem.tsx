@@ -1,41 +1,58 @@
+import type { CSSProperties, ReactNode } from "react"
 import { Link } from "react-router-dom"
-import type { LucideIcon } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 type MenuItemProps = {
   to: string
+  index: string
   label: string
   description: string
-  icon: LucideIcon
+  preview: ReactNode
   className?: string
+  style?: CSSProperties
 }
 
 export default function MenuItem({
   to,
+  index,
   label,
   description,
-  icon: Icon,
+  preview,
   className,
+  style,
 }: MenuItemProps) {
   return (
     <Button
       nativeButton={false}
       render={<Link to={to} />}
-      variant="outline"
+      variant="ghost"
+      style={style}
       className={cn(
-        "aspect-square h-auto min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded-none border-border bg-background p-6 text-center shadow-none transition-colors duration-200 hover:z-10 hover:bg-muted hover:text-foreground focus-visible:z-10 -ml-px first:ml-0 dark:bg-background dark:hover:bg-muted",
+        "menu-item-enter group/card relative h-auto min-h-0 w-full flex-col items-stretch justify-between gap-5 rounded-none border-0 bg-background p-6 text-left shadow-none transition-[background-color,transform] duration-300 ease-out hover:bg-muted/60 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring/40 active:scale-[0.995] sm:aspect-square sm:p-7 dark:hover:bg-muted/40",
         className,
       )}
     >
-      <span className="flex size-11 items-center justify-center rounded-none bg-primary text-primary-foreground transition-colors duration-200 group-hover/button:bg-foreground">
-        <Icon className="size-5" />
-      </span>
-      <span className="space-y-1">
-        <span className="block text-base font-semibold tracking-tight text-foreground">
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-[10px] tracking-[0.18em] text-muted-foreground/70">
+          {index}
+        </span>
+        <ArrowUpRight
+          className="size-4 text-muted-foreground/50 transition-all duration-300 group-hover/card:translate-x-0.5 group-hover/card:-translate-y-0.5 group-hover/card:text-foreground"
+          aria-hidden
+        />
+      </div>
+
+      <div className="relative h-[7.5rem] w-full overflow-hidden sm:h-[42%] sm:min-h-[96px]">
+        {preview}
+      </div>
+
+      <span className="space-y-1.5">
+        <span className="block text-[0.95rem] font-semibold tracking-tight text-foreground sm:text-base">
           {label}
         </span>
-        <span className="block text-sm font-normal whitespace-normal text-muted-foreground">
+        <span className="block text-[13px] leading-snug font-normal whitespace-normal text-muted-foreground">
           {description}
         </span>
       </span>

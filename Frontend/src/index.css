@@ -122,9 +122,31 @@
     @apply border-border outline-ring/50;
     }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     }
   html {
     @apply font-sans;
     }
+}
+
+/* Soft entrance for menu cards — disabled when reduced motion */
+@keyframes menu-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-item-enter {
+  animation: menu-item-enter 0.45s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-item-enter {
+    animation: none;
+  }
 }

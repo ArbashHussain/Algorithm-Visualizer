@@ -34,56 +34,47 @@ export default function FloatingButton() {
 
   return (
     <div className="fixed right-4 bottom-4 z-50 sm:right-6 sm:bottom-6">
-      <div className="flex items-center gap-1 rounded-full border border-border bg-background/90 p-1 shadow-lg backdrop-blur-md">
+      <div className="flex items-center gap-0.5 rounded-full border border-border/80 bg-background/80 p-1 shadow-[0_8px_30px_oklch(0_0_0/0.06)] backdrop-blur-xl dark:border-border dark:shadow-[0_8px_30px_oklch(0_0_0/0.35)]">
         <Button
           type="button"
           variant="ghost"
-          size="sm"
-          className="rounded-full px-3"
+          size="icon-sm"
+          className="rounded-full text-muted-foreground hover:text-foreground"
           onClick={toggleTheme}
           aria-label={
             theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
           }
-          title={theme === "dark" ? "Light" : "Dark"}
+          title={theme === "dark" ? "Light mode" : "Dark mode"}
         >
-          {theme === "dark" ? (
-            <Sun data-icon="inline-start" />
-          ) : (
-            <Moon data-icon="inline-start" />
-          )}
-          {theme === "dark" ? "Light" : "Dark"}
+          {theme === "dark" ? <Sun /> : <Moon />}
         </Button>
 
-        <span className="h-4 w-px shrink-0 bg-border" aria-hidden="true" />
+        <span className="mx-0.5 h-3.5 w-px shrink-0 bg-border" aria-hidden />
 
         <Button
           nativeButton={false}
           render={<Link to="/about" />}
           variant="ghost"
-          size="sm"
-          className="rounded-full px-3"
+          size="icon-sm"
+          className="rounded-full text-muted-foreground hover:text-foreground"
+          aria-label="About"
+          title="About"
         >
-          <Info data-icon="inline-start" />
-          About
+          <Info />
         </Button>
-
-        <span className="h-4 w-px shrink-0 bg-border" aria-hidden="true" />
 
         <Button
           nativeButton={false}
           render={
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            />
+            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" />
           }
           variant="ghost"
-          size="sm"
-          className="rounded-full px-3"
+          size="icon-sm"
+          className="rounded-full text-muted-foreground hover:text-foreground"
+          aria-label="GitHub repository"
+          title="GitHub"
         >
-          <ExternalLink data-icon="inline-start" />
-          GitHub
+          <ExternalLink />
         </Button>
       </div>
     </div>
