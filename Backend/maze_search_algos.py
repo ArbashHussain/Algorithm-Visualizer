@@ -1,3 +1,9 @@
+"""
+Pathfinding algorithms for the Pygame visualizer.
+
+Core search logic is unchanged. Sound playback has been removed; the `muted`
+parameter remains on signatures for call-site compatibility.
+"""
 import pygame
 from queue import PriorityQueue
 from themes.colors import *
@@ -5,9 +11,7 @@ from themes.animations import *
 from utils import *
 from grid import *
 import numpy as np
-import threading
 
-SCALE_FACTOR = 40
 
 def reconstruct_path(came_from, start, current, draw, visited,  win, width, theme_type, grid, is_draw = True): 
     path = []
@@ -83,10 +87,6 @@ def maze_bfs(draw,grid,start,end,output, win, width,theme_type,muted):
                 queue.append(neighbor)
                 visited.append(neighbor)
                 neighbor.make_open()   
-                if not muted:
-                    distance = h_score(neighbor.get_pos(), end.get_pos())
-                    sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                    sound_thread.start()
 
         if current != start:
             vis+=c
@@ -154,11 +154,6 @@ def maze_dfs(draw, grid, start, end, output, win, width,theme_type,muted):
                              3. Efficiency: {np.round(inc/vis, decimals=3)}
                              """)
                     return visited, path
-            if not muted:
-                distance = h_score(neighbor.get_pos(), end.get_pos())
-                sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                sound_thread.start()
-                # play_sound(distance * SCALE_FACTOR)  # Play a sound each time a new node is visited
 
         if current != start:
             vis += c
@@ -233,12 +228,7 @@ def maze_dijkstra(draw, grid, start, end, output, win, width,theme_type,muted):
                 priority_queue.put((distance_to_neighbor, neighbor))
                 neighbor.make_open()
             
-            if not muted:
-                distance = h_score(neighbor.get_pos(), end.get_pos())
-                sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                sound_thread.start()
 
-                # play_sound(distance * SCALE_FACTOR)  # Play a sound each time a new node is visited
 
         for rows in grid:
             for node in rows:
@@ -305,11 +295,6 @@ def maze_astar(draw, grid, start, end, output, win, width,theme_type,muted):
                         nebrs.append(neighbor)
                         neighbor.make_open()
                         
-            if not muted:
-                distance = h_score(neighbor.get_pos(), end.get_pos())
-                sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                sound_thread.start()
-                # play_sound(distance * SCALE_FACTOR)  # Play a sound each time a new node is visited
 
         if current != start:
             vis+=c
@@ -383,11 +368,6 @@ def maze_idastar(draw, grid, start, end,output, win, width, theme_type, muted=Fa
                             if neighbor != end:
                                 nebrs.append(neighbor)
                                 neighbor.make_open()
-                    if not muted:
-                        distance = h_score(neighbor.get_pos(), end.get_pos())
-                        sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                        sound_thread.start()
-                        # play_sound(distance * SCALE_FACTOR)  # Play a sound each time a new node is visited
 
             if current != start:
                 visited.append(current)
@@ -535,11 +515,6 @@ def maze_bi_astar(draw, grid, start, end, output, win, width, theme_type, muted=
                         """)
                     return visited1+visited2, path1+path2
                 
-            if not muted:
-                distance = h_score(neighbor.get_pos(), end.get_pos())
-                sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                sound_thread.start()
-                # play_sound(distance * SCALE_FACTOR)  # Play a sound each time a new node is visited
 
         if current != start:
             if current in visited1:
@@ -601,11 +576,6 @@ def maze_bi_astar(draw, grid, start, end, output, win, width, theme_type, muted=
                         3. Efficiency: {np.round(inc1+inc2+1/vis, decimals=3)}
                         """)
                         return visited2+visited1, path1+path2
-                if not muted:
-                    distance = h_score(neighbor.get_pos(), end.get_pos())
-                    sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                    sound_thread.start()
-                    # play_sound(distance * SCALE_FACTOR)  # Play a sound each time a new node is visited
 
             if current != end:
                 if current in visited2:
@@ -738,11 +708,6 @@ def maze_bi_bfs(draw, grid, start, end, output, win, width,theme_type,muted=Fals
                     queue1.append(neighbor)
                     visited1.append(neighbor)
                     neighbor.make_open()
-            if not muted:
-                distance = h_score(neighbor.get_pos(), end.get_pos())
-                sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                sound_thread.start()
-                # play_sound(distance * SCALE_FACTOR)  # Play a sound each time a new node is visited
 
         for neighbor in current2.neighbors:
             if not neighbor.is_barrier():
@@ -767,11 +732,6 @@ def maze_bi_bfs(draw, grid, start, end, output, win, width,theme_type,muted=Fals
                     queue2.append(neighbor)
                     visited2.append(neighbor)
                     neighbor.make_open()
-            if not muted:
-                distance = h_score(neighbor.get_pos(), end.get_pos())
-                sound_thread = threading.Thread(target=play_sound, args=(distance * SCALE_FACTOR,))
-                sound_thread.start()
-                # play_sound(distance * SCALE_FACTOR)  # Play a sound each time a new node is visited
 
         if current1 != start:
             vis += c

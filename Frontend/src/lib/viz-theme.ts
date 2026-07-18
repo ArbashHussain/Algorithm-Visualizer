@@ -39,7 +39,8 @@ function readVizPalette(): VizPalette {
       empty: "rgba(250, 250, 250, 0.08)",
       visited: "rgba(250, 250, 250, 0.28)",
       frontier: "rgba(250, 250, 250, 0.48)",
-      path: "rgba(250, 250, 250, 0.92)",
+      // Path is the only color accent — vivid red on dark B&W canvas
+      path: "rgba(239, 68, 68, 0.95)",
       start: "rgba(250, 250, 250, 1)",
       end: "rgba(250, 250, 250, 1)",
       weight: "rgba(250, 250, 250, 0.38)",
@@ -60,7 +61,8 @@ function readVizPalette(): VizPalette {
     empty: "rgba(20, 20, 20, 0.06)",
     visited: "rgba(20, 20, 20, 0.22)",
     frontier: "rgba(20, 20, 20, 0.4)",
-    path: "rgba(20, 20, 20, 0.85)",
+    // Path is the only color accent — vivid red on light B&W canvas
+    path: "rgba(220, 38, 38, 0.92)",
     start: "rgba(20, 20, 20, 1)",
     end: "rgba(20, 20, 20, 1)",
     weight: "rgba(20, 20, 20, 0.32)",
@@ -86,7 +88,7 @@ export function useVizTheme(): VizPalette {
           empty: "rgba(20,20,20,0.06)",
           visited: "rgba(20,20,20,0.22)",
           frontier: "rgba(20,20,20,0.4)",
-          path: "rgba(20,20,20,0.85)",
+          path: "rgba(220,38,38,0.92)",
           start: "rgba(20,20,20,1)",
           end: "rgba(20,20,20,1)",
           weight: "rgba(20,20,20,0.32)",

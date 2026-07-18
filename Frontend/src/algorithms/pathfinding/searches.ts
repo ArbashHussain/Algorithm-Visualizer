@@ -30,8 +30,7 @@ function* paintPath(
   const path = new Set<string>()
   const pathOrder: string[] = []
 
-  // Reveal path start → end as trail pieces only (no arrows while generating).
-  // pathSettled stays 0 during reveal; terminal arrow appears on the final frame.
+  // Reveal path start → end as red cells, one at a time.
   for (const p of pathKeys) {
     path.add(p)
     pathOrder.push(p)
@@ -44,8 +43,7 @@ function* paintPath(
     })
   }
 
-  // Complete: permanent arrow on the cell immediately before end
-  // (pathSettled > 0 signals canvas to draw that terminal arrow).
+  // Complete: full path settled as solid red cells.
   yield frameBase(visited, frontier, path, null, {
     ...pathStats(pathKeys, visCount),
     done: true,

@@ -33,7 +33,7 @@ class DrawInformation:
         self.bar_height = math.floor((self.height - TOP_PADDING) / (list_range))
         self.start_x = SIDE_PADDING // 2
 
-def draw(draw_info, algorithms, back_button, mode_button, sound_button, options, output, theme_type, ascending, menu=True,is_uniform=False):
+def draw(draw_info, algorithms, back_button, mode_button, options, output, theme_type, ascending, menu=True, is_uniform=False):
     if theme_type == 'Synth':
         draw_info.window.fill(BLACK)
     else:
@@ -55,7 +55,6 @@ def draw(draw_info, algorithms, back_button, mode_button, sound_button, options,
         draw_info.window.blit(back_button["image"], back_button["rect"])
         draw_info.window.blit(text, ((width+delta//4.3), (end-top)/2.5))
         draw_info.window.blit(mode_button["image"], mode_button["rect"])
-        draw_info.window.blit(sound_button["image"], sound_button["rect"])
         # Draw menu functions
         for algorithm in algorithms:
             if theme_type == 'Synth':        
@@ -182,25 +181,17 @@ def main(window):
     vertical_gap_factor = but_height
     
     back_button = {}
-    sound_button = {}
     mode_button = {}
-    muted = False
     ascending = True
     
     black_back_icon = pygame.image.load('assets/black_back.png')
     black_day_icon = pygame.image.load('assets/black_sun.png')
-    black_sound_icon = pygame.image.load('assets/black_sound.png')
-    black_mute_icon = pygame.image.load('assets/black_mute.png')
     
     white_back_icon = pygame.image.load('assets/white_back.png')
     white_night_icon = pygame.image.load('assets/white_moon.png')
-    white_sound_icon = pygame.image.load('assets/white_sound.png')
-    white_mute_icon = pygame.image.load('assets/white_mute.png')
-    
     
     create_button(back_button, black_back_icon, ((1010), (900//40)/2.5))
-    create_button(mode_button, black_day_icon, ((1395), (900//40)/2.5))
-    create_button(sound_button, black_sound_icon, ((1445), (900//40)/2.5))
+    create_button(mode_button, black_day_icon, ((1445), (900//40)/2.5))
     
     algorithms = [
         button(width+delta//4 +30, top_start + vertical_gap_factor,
@@ -277,9 +268,9 @@ def main(window):
                 sorting = False
                 
         if is_uniform:  
-            draw(draw_info,algorithms,back_button,mode_button,sound_button,options,output,theme_type,ascending=ascending,is_uniform=True)  
+            draw(draw_info, algorithms, back_button, mode_button, options, output, theme_type, ascending=ascending, is_uniform=True)  
         else: 
-            draw(draw_info,algorithms,back_button,mode_button,sound_button,options,output,theme_type,ascending=ascending,is_uniform=False)        
+            draw(draw_info, algorithms, back_button, mode_button, options, output, theme_type, ascending=ascending, is_uniform=False)        
             
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -304,7 +295,7 @@ def main(window):
                         sorting_algorithm_name = 'Bubble Sort'
                         
                     sorting = True
-                    sorting_algorithm_generator = sorting_algorithm(draw_info, draw_info.lst, low, high, ascending, theme_type, muted)
+                    sorting_algorithm_generator = sorting_algorithm(draw_info, draw_info.lst, low, high, ascending, theme_type, True)
 
             
             if pygame.mouse.get_pressed()[0]:
@@ -313,27 +304,6 @@ def main(window):
                 if is_hover(back_button,pos):
                     print("Sending to Main Menu")
                     main_app.main_menu()
-                
-                if is_hover(sound_button,pos):
-                    muted = not muted
-                    if muted:
-                        sound_button["image"] = black_mute_icon if theme_type == 'Default' else white_mute_icon
-                    else:
-                        sound_button["image"] = black_sound_icon if theme_type == 'Default' else white_sound_icon
-                
-                if is_hover(mode_button,pos):
-                    theme_type = 'Default' if theme_type == 'Synth' else 'Synth'
-                    if theme_type == 'Default':
-                        mode_button["image"] = black_day_icon
-                        back_button["image"] = black_back_icon
-                        sound_button["image"] = black_mute_icon if muted else black_sound_icon
-                        
-                    else:
-                        mode_button["image"] = white_night_icon
-                        back_button["image"] = white_back_icon
-                        sound_button["image"] = white_mute_icon if muted else white_sound_icon
-                    
-                    draw_info = DrawInformation(width + 150, width, lst, window, theme_type)
 
                 elif algorithms[0].is_hover(pos):
                     algorithms[0].toggle_color()

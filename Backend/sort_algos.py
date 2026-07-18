@@ -1,11 +1,17 @@
+"""
+Sorting algorithms for the Pygame visualizer.
+
+Each function is a generator that mutates the list in place and yields after
+each visual step (draw_list). The `muted` argument is retained for call-site
+compatibility; sound has been removed.
+"""
 import sort_main
 from themes.colors import *
 from themes.themes import themes
-import threading
-from utils import *
 
 MIN_MERGE = 32
-SCALE_FACTOR = 20
+
+
 def calculate_min_run(n): 
     """Returns the minimum length of a 
     run from 23 - 64 so that 
@@ -26,9 +32,6 @@ def bubble_sort(draw_info,arr,low,high,ascending,theme_type,muted):
             if (arr[j]>arr[j+1] and ascending) or (arr[j]<arr[j+1] and not ascending):
                 arr[j], arr[j+1] = arr[j+1], arr[j]
                 sort_main.draw_list(draw_info,{j:themes[theme_type]['current_color'],j+1:themes[theme_type]['other_color']},theme_type=theme_type,clear_bg=True)
-                if not muted and j < len(arr) - 1:
-                    sound_thread = threading.Thread(target=play_sound, args=(arr[j] * SCALE_FACTOR,))
-                    sound_thread.start()
                 yield True
     return arr
         
@@ -39,14 +42,9 @@ def selection_sort(draw_info, arr, low, high, ascending ,theme_type,muted):
             if (arr[j] < arr[min_idx] and ascending) or (arr[j] > arr[min_idx] and not ascending):
                 min_idx = j
                 sort_main.draw_list(draw_info, {i: themes[theme_type]['current_color'], min_idx: themes[theme_type]['other_color']},theme_type=theme_type, clear_bg=True)
-                if not muted and j < len(arr) - 1:
-                    sound_thread = threading.Thread(target=play_sound, args=(arr[j] * SCALE_FACTOR,))
-                    sound_thread.start()
                 yield True
         arr[i], arr[min_idx] = arr[min_idx], arr[i]
         sort_main.draw_list(draw_info, {i: themes[theme_type]['current_color'], min_idx: themes[theme_type]['other_color']},theme_type=theme_type, clear_bg=True)
-        if not muted and i < len(arr) - 1:
-            play_sound(arr[i] * SCALE_FACTOR)  # Play a sound each time a swap is made
         yield True
     return arr
 
@@ -59,31 +57,18 @@ def insertion_sort(draw_info, arr, low, high, ascending ,theme_type,muted):
                 arr[j + 1] = arr[j]
                 j -= 1
                 sort_main.draw_list(draw_info, {j: themes[theme_type]['current_color'], j + 1: themes[theme_type]['other_color']},theme_type=theme_type, clear_bg=True)
-                if not muted and j < len(arr) - 1:
-                    sound_thread = threading.Thread(target=play_sound, args=(arr[j] * SCALE_FACTOR,))
-                    sound_thread.start()
                 yield True
             arr[j + 1] = key
             sort_main.draw_list(draw_info, {j + 1: themes[theme_type]['pivot_color']},theme_type=theme_type, clear_bg=True)
-            if not muted and j < len(arr) - 1:
-                sound_thread = threading.Thread(target=play_sound, args=(arr[j+1] * SCALE_FACTOR,))
-                sound_thread.start()
-                # play_sound(arr[j + 1] * SCALE_FACTOR)
             yield True
         else:
             while j >= low and arr[j] < key:
                 arr[j + 1] = arr[j]
                 j -= 1
                 sort_main.draw_list(draw_info, {j: themes[theme_type]['current_color'], j + 1: themes[theme_type]['other_color']},theme_type=theme_type, clear_bg=True)
-                if not muted and j < len(arr) - 1:
-                    sound_thread = threading.Thread(target=play_sound, args=(arr[j] * SCALE_FACTOR,))
-                    sound_thread.start()
                 yield True
             arr[j + 1] = key
             sort_main.draw_list(draw_info, {j + 1: themes[theme_type]['pivot_color']},theme_type=theme_type, clear_bg=True)
-            if not muted and j < len(arr) - 1:
-                sound_thread = threading.Thread(target=play_sound, args=(arr[j+1] * SCALE_FACTOR,))
-                sound_thread.start()
             yield True    
     return arr
 
@@ -114,9 +99,6 @@ def merge_sort(draw_info, lst, low, high, ascending ,theme_type,muted):
                 j += 1
             k += 1
             sort_main.draw_list(draw_info, {k: themes[theme_type]['current_color']},theme_type=theme_type,clear_bg=True)
-            if not muted and k < len(lst) - 1:
-                sound_thread = threading.Thread(target=play_sound, args=(lst[k] * SCALE_FACTOR,))
-                sound_thread.start()
             yield True
 
         while i < n1:
@@ -124,9 +106,6 @@ def merge_sort(draw_info, lst, low, high, ascending ,theme_type,muted):
             i += 1
             k += 1
             sort_main.draw_list(draw_info, {k: themes[theme_type]['current_color']},theme_type=theme_type,clear_bg=True)
-            if not muted and k < len(lst) - 1:
-                sound_thread = threading.Thread(target=play_sound, args=(lst[k] * SCALE_FACTOR,))
-                sound_thread.start()
             yield True
 
         while j < n2:
@@ -134,9 +113,6 @@ def merge_sort(draw_info, lst, low, high, ascending ,theme_type,muted):
             j += 1
             k += 1
             sort_main.draw_list(draw_info, {k: themes[theme_type]['current_color']},theme_type=theme_type,clear_bg=True)
-            if not muted and k < len(lst) - 1:
-                sound_thread = threading.Thread(target=play_sound, args=(lst[k] * SCALE_FACTOR,))
-                sound_thread.start()
             yield True
         return lst
 
@@ -161,16 +137,10 @@ def quick_sort(draw_info, lst, low, high, ascending ,theme_type,muted):
                 i = i + 1
                 lst[i], lst[j] = lst[j], lst[i]
                 sort_main.draw_list(draw_info, {i: themes[theme_type]['current_color'], j: themes[theme_type]['other_color']},theme_type=theme_type, clear_bg=True)
-                if not muted and i < len(lst) - 1:
-                    sound_thread = threading.Thread(target=play_sound, args=(lst[i] * SCALE_FACTOR,))
-                    sound_thread.start()
                 yield True
 
         lst[i + 1], lst[high] = lst[high], lst[i + 1]
         sort_main.draw_list(draw_info, {i + 1: themes[theme_type]['current_color'], high: themes[theme_type]['other_color']},theme_type=theme_type, clear_bg=True)
-        if not muted and i < len(lst) - 1:
-            sound_thread = threading.Thread(target=play_sound, args=(lst[i+1] * SCALE_FACTOR,))
-            sound_thread.start()
         yield True
         return (i + 1)
 
@@ -214,9 +184,6 @@ def merge(draw_info, arr, l, m, r, ascending,theme_type,muted):
                 j += 1
 
         sort_main.draw_list(draw_info, {k: themes[theme_type]['current_color']},theme_type=theme_type, clear_bg=True)
-        if not muted and k < len(arr):
-            sound_thread = threading.Thread(target=play_sound, args=(arr[k] * SCALE_FACTOR,))
-            sound_thread.start()
         yield True
         k += 1
                
@@ -225,9 +192,6 @@ def merge(draw_info, arr, l, m, r, ascending,theme_type,muted):
         k += 1
         i += 1
         sort_main.draw_list(draw_info, {}, theme_type=theme_type,clear_bg=True)
-        if not muted and k < len(arr):
-            sound_thread = threading.Thread(target=play_sound, args=(arr[k] * SCALE_FACTOR,))
-            sound_thread.start()
         yield True
         
     while j < len2: 
@@ -235,9 +199,6 @@ def merge(draw_info, arr, l, m, r, ascending,theme_type,muted):
         k += 1
         j += 1
         sort_main.draw_list(draw_info, {}, theme_type=theme_type,clear_bg=True)
-        if not muted and k < len(arr):
-            sound_thread = threading.Thread(target=play_sound, args=(arr[k] * SCALE_FACTOR,))
-            sound_thread.start()
         yield True
              
 def tim_sort(draw_info, arr, low, high, ascending, theme_type, muted):
@@ -245,9 +206,6 @@ def tim_sort(draw_info, arr, low, high, ascending, theme_type, muted):
     for i in range(low, high, min_run):
         end = min((i + min_run - 1), high - 1)
         yield from insertion_sort(draw_info, arr, i, end+1, ascending, theme_type, muted)
-        if not muted and i < len(arr) - 1:
-            sound_thread = threading.Thread(target=play_sound, args=(arr[i] * SCALE_FACTOR,))
-            sound_thread.start()
 
     size = min_run
 
@@ -257,9 +215,6 @@ def tim_sort(draw_info, arr, low, high, ascending, theme_type, muted):
             right = min((left + 2 * size - 1), (high - 1))
             if mid < right:
                 yield from merge(draw_info, arr, left, mid, right, ascending, theme_type, muted)
-                if not muted and left < len(arr) - 1:
-                    sound_thread = threading.Thread(target=play_sound, args=(arr[left] * SCALE_FACTOR,))
-                    sound_thread.start()
         size = 2 * size
 
 def bucket_sort(draw_info, lst, low, high, ascending, theme_type, muted):
@@ -279,9 +234,6 @@ def bucket_sort(draw_info, lst, low, high, ascending, theme_type, muted):
             lst[k] = item
             k += 1
             sort_main.draw_list(draw_info, {k: themes[theme_type]['current_color']},theme_type=theme_type,clear_bg=True,is_uniform=True)
-            if not muted and k < len(lst) - 1:
-                sound_thread = threading.Thread(target=play_sound, args=(lst[k] * SCALE_FACTOR,))
-                sound_thread.start()
             yield True
 
 def radix_count_sort(draw_info, arr, place, ascending, theme_type, muted):
@@ -314,9 +266,6 @@ def radix_count_sort(draw_info, arr, place, ascending, theme_type, muted):
     for i in range(n):
         arr[i] = output_arr[i]
         sort_main.draw_list(draw_info, {i: themes[theme_type]['current_color']},theme_type=theme_type,clear_bg=True)
-        if not muted and i < len(arr) - 1:
-            sound_thread = threading.Thread(target=play_sound, args=(arr[i] * SCALE_FACTOR,))
-            sound_thread.start()
         yield True
 
 def radix_sort(draw_info, arr, low, high, ascending, theme_type, muted):
@@ -324,8 +273,5 @@ def radix_sort(draw_info, arr, low, high, ascending, theme_type, muted):
     place = 1
     while max_ele // place > 0:
         yield from radix_count_sort(draw_info, arr, place, ascending, theme_type, muted)
-        if not muted and max_ele * SCALE_FACTOR < 20000:
-            sound_thread = threading.Thread(target=play_sound, args=(max_ele * SCALE_FACTOR,))
-            sound_thread.start()
         place *= 10
         

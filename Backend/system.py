@@ -139,7 +139,7 @@ def is_hover(button, pos):
     else:
         return False
 
-def draw(win, grid, rows, width, algorithms, mazes, back_button, mode_button, sound_button, options, output, theme_type, menu = True):
+def draw(win, grid, rows, width, algorithms, mazes, back_button, mode_button, options, output, theme_type, menu=True):
     win.fill(themes[theme_type]["menu_bg_color"])
     for row in grid:
         for node in row:
@@ -160,7 +160,6 @@ def draw(win, grid, rows, width, algorithms, mazes, back_button, mode_button, so
         win.blit(back_button["image"], back_button["rect"])
         win.blit(text, ((width+delta//10)-20, (end-top)/2.5))
         win.blit(mode_button["image"], mode_button["rect"])
-        win.blit(sound_button["image"], sound_button["rect"])
         for algorithm in algorithms:
             if theme_type == "Synth":
                 algorithm.theme_type = "Synth"

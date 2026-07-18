@@ -5,6 +5,8 @@ export type PreviewPalette = {
   muted: string
   accent: string
   bg: string
+  /** Only color accent — reconstructed path cells. */
+  path: string
 }
 
 function readPalette(): PreviewPalette {
@@ -15,6 +17,7 @@ function readPalette(): PreviewPalette {
       muted: "rgba(250, 250, 250, 0.28)",
       accent: "rgba(250, 250, 250, 0.72)",
       bg: "transparent",
+      path: "rgba(239, 68, 68, 0.95)",
     }
   }
   return {
@@ -22,6 +25,7 @@ function readPalette(): PreviewPalette {
     muted: "rgba(20, 20, 20, 0.22)",
     accent: "rgba(20, 20, 20, 0.65)",
     bg: "transparent",
+    path: "rgba(220, 38, 38, 0.92)",
   }
 }
 
@@ -35,6 +39,7 @@ export function usePreviewTheme(): PreviewPalette {
           muted: "rgba(20,20,20,0.22)",
           accent: "rgba(20,20,20,0.65)",
           bg: "transparent",
+          path: "rgba(220,38,38,0.92)",
         },
   )
 

@@ -11,9 +11,11 @@ export const PATH_ALGORITHMS: PathAlgorithmMeta[] = [
   { id: "bi-bfs", label: "Bi-BFS" },
   { id: "dfs", label: "DFS" },
   { id: "dijkstra", label: "Dijkstra" },
+  { id: "greedy-best-first", label: "Greedy Best-First", implemented: false },
   { id: "astar", label: "A*" },
   { id: "idastar", label: "IDA*" },
   { id: "bi-astar", label: "Bi-A*" },
+  { id: "beam-search", label: "Beam Search", implemented: false },
   { id: "bellman-ford", label: "Bellman Ford" },
 ]
 

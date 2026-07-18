@@ -17,15 +17,14 @@ export type PathFrame = {
   done?: boolean
   found?: boolean
   /**
-   * Ordered path keys from start → end while the path is drawn / settled.
-   * Used for directional arrows and the dash-settle animation.
+   * Ordered path keys from start → end while the path is revealed cell-by-cell.
+   * Used to orient the start marker along the first step.
    */
   pathOrder?: string[]
   /**
-   * Path-reveal stage flag for the canvas:
-   * - 0 (or unset during generation): trail pieces only, no terminal arrow
-   * - > 0: path complete — draw permanent arrow on the cell immediately before end
-   * Start/end never receive path glyphs.
+   * Path-reveal stage flag:
+   * - 0 (or unset during generation): still revealing path cells
+   * - > 0: path reveal complete
    */
   pathSettled?: number
 }
@@ -41,10 +40,18 @@ export type PathAlgorithmId =
   | "idastar"
   | "bi-astar"
   | "bellman-ford"
+  /** UI listed; step generator not wired yet */
+  | "beam-search"
+  | "greedy-best-first"
 
 export type PathAlgorithmMeta = {
   id: PathAlgorithmId
   label: string
+  /**
+   * When false, shown in the UI but Play is disabled until implemented.
+   * Default true for existing generators.
+   */
+  implemented?: boolean
 }
 
 export function key(r: number, c: number): string {

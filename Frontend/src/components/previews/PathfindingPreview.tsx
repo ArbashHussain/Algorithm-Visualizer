@@ -6,6 +6,8 @@ const ROWS = 7
 const STEP_MS = 55
 const HOLD_MS = 900
 const SEARCH_FADE_MS = 5000
+const PATH_PULSE_MS = 1600
+const PATH_WAVE_LAG = 0.42
 
 type Cell = 0 | 1
 type Dir = "up" | "down" | "left" | "right"
@@ -55,166 +57,35 @@ function dirBetween(
   return null
 }
 
-function opposite(dir: Dir): Dir {
-  switch (dir) {
-    case "right":
-      return "left"
-    case "left":
-      return "right"
-    case "down":
-      return "up"
-    case "up":
-      return "down"
+function parseRgba(color: string): { r: number; g: number; b: number; a: number } {
+  const m = color.match(
+    /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/,
+  )
+  if (!m) return { r: 239, g: 68, b: 68, a: 1 }
+  return {
+    r: Number(m[1]),
+    g: Number(m[2]),
+    b: Number(m[3]),
+    a: m[4] !== undefined ? Number(m[4]) : 1,
   }
 }
 
-function dirOffset(dir: Dir, half: number) {
-  switch (dir) {
-    case "right":
-      return { x: half, y: 0 }
-    case "left":
-      return { x: -half, y: 0 }
-    case "down":
-      return { x: 0, y: half }
-    case "up":
-      return { x: 0, y: -half }
-  }
-}
-
-function drawArrow(
+/** Fill covering half the gap so edges match the fill color. */
+function fillSeamless(
   ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  size: number,
-  dir: Dir,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  gap: number,
   color: string,
 ) {
-  const s = size * 0.32
-  ctx.save()
-  ctx.translate(cx, cy)
-  const rot =
-    dir === "right"
-      ? 0
-      : dir === "down"
-        ? Math.PI / 2
-        : dir === "left"
-          ? Math.PI
-          : -Math.PI / 2
-  ctx.rotate(rot)
-  ctx.strokeStyle = color
-  ctx.lineWidth = Math.max(1, size * 0.1)
-  ctx.lineCap = "round"
-  ctx.lineJoin = "round"
-  ctx.beginPath()
-  ctx.moveTo(-s * 0.85, 0)
-  ctx.lineTo(s * 0.3, 0)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.moveTo(s * 0.1, -s * 0.55)
-  ctx.lineTo(s * 0.85, 0)
-  ctx.lineTo(s * 0.1, s * 0.55)
-  ctx.stroke()
-  ctx.restore()
+  const pad = gap / 2
+  ctx.fillStyle = color
+  ctx.fillRect(x - pad, y - pad, w + gap, h + gap)
 }
 
-function drawStraight(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  size: number,
-  dir: Dir,
-  color: string,
-) {
-  const half = size * 0.34
-  ctx.save()
-  ctx.strokeStyle = color
-  ctx.lineWidth = Math.max(1.2, size * 0.12)
-  ctx.lineCap = "round"
-  ctx.beginPath()
-  if (dir === "left" || dir === "right") {
-    ctx.moveTo(cx - half, cy)
-    ctx.lineTo(cx + half, cy)
-  } else {
-    ctx.moveTo(cx, cy - half)
-    ctx.lineTo(cx, cy + half)
-  }
-  ctx.stroke()
-  ctx.restore()
-}
-
-function drawTurn(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  size: number,
-  inDir: Dir,
-  outDir: Dir,
-  color: string,
-) {
-  const half = size * 0.34
-  const from = dirOffset(opposite(inDir), half)
-  const to = dirOffset(outDir, half)
-  ctx.save()
-  ctx.strokeStyle = color
-  ctx.lineWidth = Math.max(1.2, size * 0.12)
-  ctx.lineCap = "round"
-  ctx.lineJoin = "round"
-  ctx.beginPath()
-  ctx.moveTo(cx + from.x, cy + from.y)
-  ctx.lineTo(cx, cy)
-  ctx.lineTo(cx + to.x, cy + to.y)
-  ctx.stroke()
-  ctx.restore()
-}
-
-function drawTerminalArrow(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  size: number,
-  inDir: Dir | null,
-  outDir: Dir,
-  color: string,
-) {
-  if (!inDir || inDir === outDir) {
-    drawArrow(ctx, cx, cy, size, outDir, color)
-    return
-  }
-  const half = size * 0.34
-  const head = size * 0.32
-  const from = dirOffset(opposite(inDir), half)
-  ctx.save()
-  ctx.strokeStyle = color
-  ctx.lineWidth = Math.max(1.2, size * 0.12)
-  ctx.lineCap = "round"
-  ctx.lineJoin = "round"
-  ctx.beginPath()
-  ctx.moveTo(cx + from.x, cy + from.y)
-  ctx.lineTo(cx, cy)
-  ctx.stroke()
-  ctx.translate(cx, cy)
-  const rot =
-    outDir === "right"
-      ? 0
-      : outDir === "down"
-        ? Math.PI / 2
-        : outDir === "left"
-          ? Math.PI
-          : -Math.PI / 2
-  ctx.rotate(rot)
-  ctx.beginPath()
-  ctx.moveTo(0, 0)
-  ctx.lineTo(head * 0.35, 0)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.moveTo(head * 0.15, -head * 0.55)
-  ctx.lineTo(head * 0.85, 0)
-  ctx.lineTo(head * 0.15, head * 0.55)
-  ctx.stroke()
-  ctx.restore()
-}
-
-/** Mini BFS: expand → trail path (no arrows while drawing) → terminal arrow → fade search. */
+/** Mini BFS: expand → glowing red path → fade search. */
 export default function PathfindingPreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const palette = usePreviewTheme()
@@ -342,6 +213,7 @@ export default function PathfindingPreview() {
       const cellW = (w - gap * (COLS - 1)) / COLS
       const cellH = (h - gap * (ROWS - 1)) / ROWS
       const cell = Math.min(cellW, cellH)
+      const reduced = prefersReducedMotion()
 
       const visitedSet = new Set(
         order.slice(0, orderIdx).map((c) => key(c.r, c.c)),
@@ -351,13 +223,18 @@ export default function PathfindingPreview() {
         pathComplete ? path.length : Math.min(pathIdx + 1, path.length),
       )
       const pathSet = new Set(shownPath.map((c) => key(c.r, c.c)))
+      const pathIndex = new Map(
+        shownPath.map((p, i) => [key(p.r, p.c), i] as const),
+      )
       const ink = palette.fg
-      const arrowIdx = shownPath.length - 2
       const searchAlpha =
         fadeStart === null
           ? 1
           : Math.max(0, 1 - (now - fadeStart) / SEARCH_FADE_MS)
+      const { r: pr, g: pg, b: pb, a: pa } = parseRgba(palette.path)
+      const wallColor = palette.fg
 
+      // Pass 1: base grid
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           const x = c * (cellW + gap)
@@ -365,20 +242,29 @@ export default function PathfindingPreview() {
           const k = key(r, c)
           const isStart = r === start.r && c === start.c
           const isGoal = r === goal.r && c === goal.c
+          const onPath = pathSet.has(k)
 
-          // Base
+          if (onPath) {
+            ctx.fillStyle = palette.muted
+            ctx.globalAlpha = 0.2
+            ctx.fillRect(x, y, cellW, cellH)
+            ctx.globalAlpha = 1
+            continue
+          }
+
           if (grid[r]![c] === 1) {
-            ctx.fillStyle = palette.fg
+            // Wall covers gap — border matches wall color
             ctx.globalAlpha = 0.85
+            fillSeamless(ctx, x, y, cellW, cellH, gap, wallColor)
+            ctx.globalAlpha = 1
           } else {
             ctx.fillStyle = palette.muted
             ctx.globalAlpha = 0.35
+            ctx.fillRect(x, y, cellW, cellH)
+            ctx.globalAlpha = 1
           }
-          ctx.fillRect(x, y, cellW, cellH)
-          ctx.globalAlpha = 1
 
-          // Search overlay (fades out after path found; never on path cells)
-          if (!isStart && !isGoal && !pathSet.has(k) && searchAlpha > 0.01) {
+          if (!isStart && !isGoal && searchAlpha > 0.01) {
             let overlay: string | null = null
             let oa = 0
             if (frontier && frontier.r === r && frontier.c === c) {
@@ -395,34 +281,63 @@ export default function PathfindingPreview() {
               ctx.globalAlpha = 1
             }
           }
+        }
+      }
 
+      // Pass 2: animated path
+      for (let i = 0; i < shownPath.length; i++) {
+        const p = shownPath[i]!
+        const x = p.c * (cellW + gap)
+        const y = p.r * (cellH + gap)
+        const idx = pathIndex.get(key(p.r, p.c)) ?? i
+
+        let pulse = 0.55
+        if (!reduced) {
+          const phase =
+            (now / PATH_PULSE_MS) * Math.PI * 2 - idx * PATH_WAVE_LAG
+          pulse = 0.5 + 0.5 * Math.sin(phase)
+        }
+
+        // Soft glow (opacity only — no grow/scale)
+        if (!reduced) {
+          ctx.save()
+          ctx.shadowColor = `rgba(${pr}, ${pg}, ${pb}, ${0.45 + 0.3 * pulse})`
+          ctx.shadowBlur = cell * (0.28 + 0.35 * pulse)
+          ctx.fillStyle = `rgba(${pr}, ${pg}, ${pb}, ${0.12 + 0.18 * pulse})`
+          const gpad = cell * 0.08
+          ctx.fillRect(x - gpad, y - gpad, cellW + gpad * 2, cellH + gpad * 2)
+          ctx.restore()
+        }
+
+        const fillA = pa * (0.82 + 0.18 * pulse)
+        fillSeamless(
+          ctx,
+          x,
+          y,
+          cellW,
+          cellH,
+          gap,
+          `rgba(${pr}, ${pg}, ${pb}, ${fillA})`,
+        )
+
+        // Inner sheen
+        if (!reduced) {
+          const pad = Math.min(cellW, cellH) * 0.2
+          ctx.fillStyle = `rgba(${Math.min(255, pr + 40)}, ${Math.min(255, pg + 30)}, ${Math.min(255, pb + 30)}, ${0.08 + 0.14 * pulse})`
+          ctx.fillRect(x + pad, y + pad, cellW - pad * 2, cellH - pad * 2)
+        }
+      }
+
+      // Pass 3: markers
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const isStart = r === start.r && c === start.c
+          const isGoal = r === goal.r && c === goal.c
+          if (!isStart && !isGoal) continue
+          const x = c * (cellW + gap)
+          const y = r * (cellH + gap)
           const cx = x + cellW / 2
           const cy = y + cellH / 2
-
-          // Path: trail while generating; terminal arrow only when complete
-          if (pathSet.has(k) && !isStart && !isGoal) {
-            const pi = shownPath.findIndex((p) => p.r === r && p.c === c)
-            if (pi >= 0) {
-              const prev = pi > 0 ? shownPath[pi - 1]! : null
-              const next =
-                pi < shownPath.length - 1 ? shownPath[pi + 1]! : null
-              const inDir = prev ? dirBetween(prev, shownPath[pi]!) : null
-              const outDir = next ? dirBetween(shownPath[pi]!, next) : null
-
-              if (pathComplete && pi === arrowIdx && outDir) {
-                drawTerminalArrow(ctx, cx, cy, cell, inDir, outDir, ink)
-              } else if (inDir && outDir) {
-                if (inDir === outDir) {
-                  drawStraight(ctx, cx, cy, cell, outDir, ink)
-                } else {
-                  drawTurn(ctx, cx, cy, cell, inDir, outDir, ink)
-                }
-              } else {
-                const d = outDir ?? inDir
-                if (d) drawStraight(ctx, cx, cy, cell, d, ink)
-              }
-            }
-          }
 
           if (isStart) {
             const rr = Math.min(cellW, cellH) * 0.3
@@ -433,7 +348,6 @@ export default function PathfindingPreview() {
             ctx.arc(cx, cy, rr, 0, Math.PI * 2)
             ctx.stroke()
 
-            // Face first path step when known; otherwise default right
             let facing: Dir = "right"
             if (shownPath.length >= 2) {
               const d = dirBetween(shownPath[0]!, shownPath[1]!)

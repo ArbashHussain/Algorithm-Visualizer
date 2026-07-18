@@ -54,6 +54,7 @@ export default function PathfinderPage() {
     return animMode === "maze" ? Math.max(2, Math.floor(base * 0.55)) : base
   }, [speed, animMode])
   const meta = PATH_ALGORITHMS.find((a) => a.id === algo)!
+  const algoReady = meta.implemented !== false
 
   const setMode = (mode: "search" | "maze" | null) => {
     animModeRef.current = mode
@@ -230,6 +231,10 @@ export default function PathfinderPage() {
       play()
       return
     }
+    if (!algoReady && animModeRef.current !== "maze") {
+      setStatus(`${meta.label} is listed in the UI but not implemented yet.`)
+      return
+    }
     if (!genRef.current) {
       setFrame(null)
       setStats(null)
@@ -266,7 +271,7 @@ export default function PathfinderPage() {
       </div>
 
       <div className="grid flex-1 gap-6 lg:grid-cols-[1fr_280px]">
-        <section className="flex min-h-[360px] flex-col rounded-xl border border-border bg-card sm:min-h-[480px]">
+        <section className="flex min-h-90 flex-col rounded-xl border border-border bg-card sm:min-h-[480px]">
           <div className="flex-1 p-3 sm:p-4">
             <PathfindingCanvas
               grid={grid}
@@ -277,7 +282,16 @@ export default function PathfinderPage() {
             />
           </div>
           <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3">
-            <Button size="sm" onClick={handlePlay}>
+            <Button
+              size="sm"
+              onClick={handlePlay}
+              disabled={!playing && !algoReady}
+              title={
+                !algoReady
+                  ? `${meta.label} not implemented yet`
+                  : undefined
+              }
+            >
               {playing ? (
                 <>
                   <Pause data-icon="inline-start" /> Pause
@@ -320,27 +334,41 @@ export default function PathfinderPage() {
               Algorithms
             </h2>
             <div className="grid grid-cols-2 gap-1.5">
-              {PATH_ALGORITHMS.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  disabled={playing}
-                  onClick={() => {
-                    setAlgo(a.id)
-                    resetSearch()
-                    setStatus(`${a.label} selected.`)
-                  }}
-                  className={cn(
-                    "rounded-lg border px-2 py-2 text-left text-xs font-medium transition-colors",
-                    algo === a.id
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border bg-background text-foreground hover:bg-muted",
-                    playing && "opacity-60",
-                  )}
-                >
-                  {a.label}
-                </button>
-              ))}
+              {PATH_ALGORITHMS.map((a) => {
+                const ready = a.implemented !== false
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    disabled={playing}
+                    onClick={() => {
+                      setAlgo(a.id)
+                      resetSearch()
+                      setStatus(
+                        ready
+                          ? `${a.label} selected.`
+                          : `${a.label} selected — not implemented yet (UI only).`,
+                      )
+                    }}
+                    className={cn(
+                      "rounded-lg border px-2 py-2 text-left text-xs font-medium transition-colors",
+                      algo === a.id
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-background text-foreground hover:bg-muted",
+                      playing && "opacity-60",
+                      !ready && algo !== a.id && "opacity-70",
+                    )}
+                    title={ready ? undefined : "UI only — not implemented yet"}
+                  >
+                    {a.label}
+                    {!ready && (
+                      <span className="mt-0.5 block text-[10px] font-normal opacity-70">
+                        soon
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </section>
 
@@ -384,14 +412,6 @@ export default function PathfinderPage() {
               >
                 DFS Maze
               </Button>
-              <Button
-                size="xs"
-                variant="outline"
-                disabled={playing}
-                onClick={() => applyMaze("random")}
-              >
-                Random
-              </Button>
             </div>
           </section>
 
@@ -408,7 +428,7 @@ export default function PathfinderPage() {
               >
                 − Nodes
               </Button>
-              <span className="min-w-[4rem] text-center text-sm tabular-nums">
+              <span className="min-w-16 text-center text-sm tabular-nums">
                 {rows}×{rows}
               </span>
               <Button
@@ -449,8 +469,12 @@ export default function PathfinderPage() {
                 bullseye
               </li>
               <li>
-                <span className="font-medium text-foreground">Path</span> —
-                trail with turns; final → on the cell before end (turn-aware)
+                <span className="font-medium text-foreground">Path</span> — red
+                cells with soft glow &amp; pulse
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Walls</span> —
+                solid blocks (edge color matches fill)
               </li>
             </ul>
             <p className="mt-3 mb-1 font-medium text-foreground">

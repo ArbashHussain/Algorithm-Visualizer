@@ -27,22 +27,16 @@ def main(win, width):
 
     # Define your button
     back_button = {}
-    sound_button = {}
     mode_button = {}
     
     black_back_icon = pygame.image.load('assets/black_back.png')
     black_day_icon = pygame.image.load('assets/black_sun.png')
-    black_sound_icon = pygame.image.load('assets/black_sound.png')
-    black_mute_icon = pygame.image.load('assets/black_mute.png')
     
     white_back_icon = pygame.image.load('assets/white_back.png')
     white_night_icon = pygame.image.load('assets/white_moon.png')
-    white_sound_icon = pygame.image.load('assets/white_sound.png')
-    white_mute_icon = pygame.image.load('assets/white_mute.png')
     
     create_button(back_button, black_back_icon,((820), (ht//40)/2.5))
-    create_button(mode_button, black_day_icon, ((1380), (ht//40)/2.5))
-    create_button(sound_button, black_mute_icon, ((1440), (ht//40)/2.5))
+    create_button(mode_button, black_day_icon, ((1440), (ht//40)/2.5))
     
     algorithms = [
         button(width + start_factor, top_start + vertical_gap_factor,
@@ -72,8 +66,6 @@ def main(win, width):
 
     mazes = [
         button(width + start_factor, top_start + (7*vertical_gap_factor), but_width-but_height, but_height, text="DFS Maze",theme_type=theme_type),
-
-        button(width + start_factor + horizontal_gap_factor, top_start + (7*vertical_gap_factor), but_width-but_height, but_height, text="Random",theme_type=theme_type),
     ]
     but_width = but_width//1.4
     horizontal_gap_factor = but_width-but_height
@@ -108,7 +100,6 @@ def main(win, width):
     path = False
     search_algorithm = None
     maze_gen_algorithm = maze_gen_dfs
-    muted = True
     while run:
         if len(visited):
             visit_animation(visited,theme_type)
@@ -116,7 +107,7 @@ def main(win, width):
         if path:
             path_animation(path,theme_type)
 
-        draw(win, grid, ROWS, width, algorithms, mazes,back_button,mode_button,sound_button, options, output, theme_type)
+        draw(win, grid, ROWS, width, algorithms, mazes, back_button, mode_button, options, output, theme_type)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -133,72 +124,11 @@ def main(win, width):
                         output.set_text4("")
                         output.draw(win, outline=BLACK,theme_type=theme_type)
                         pygame.display.update()
-                        visited, path = search_algorithm(lambda: draw(win, grid, ROWS, width, algorithms, mazes,back_button, options, output,theme_type), grid, start, end, output, win, width,theme_type,muted)
+                        visited, path = search_algorithm(lambda: draw(win, grid, ROWS, width, algorithms, mazes, back_button, mode_button, options, output, theme_type), grid, start, end, output, win, width, theme_type, True)
                         if not path:
                             output.set_text1("Path not available")
                     else:
                         continue
-                elif event.key == pygame.K_m:
-                    muted = not muted
-                    if muted:
-                        sound_button["image"] = black_mute_icon if theme_type == 'Default' else white_mute_icon
-                    else:
-                        sound_button["image"] = black_sound_icon if theme_type == 'Default' else white_sound_icon
-                
-            if pygame.mouse.get_pressed()[0]:
-                pos = pygame.mouse.get_pos()
-                row, col = get_clicked_pos(pos, ROWS, width)
-                if row >= 0 and row < ROWS and col < ROWS and col >= 0:
-                    node = grid[row][col]
-                    if node in visited:
-                        visited.remove(node)
-                    if node in weighted:
-                        weighted.remove(node)
-                    if path:
-                        if node in path:
-                            path.remove(node)
-                    if not start and node != end:
-                        if node in visited:
-                            visited.remove(node)
-                        start = node
-                        start.make_start()
-                    elif not end and node != start:
-                        end = node
-                        end.make_end()
-                    elif node != end and node != start:
-                        node.make_barrier()
-                        
-                elif is_hover(back_button,pos):
-                    print("Sending to Main Menu")
-                    main_app.main_menu()
-                
-                if is_hover(sound_button,pos):
-                    muted = not muted
-                    if muted:
-                        sound_button["image"] = black_mute_icon if theme_type == 'Default' else white_mute_icon
-                    else:
-                        sound_button["image"] = black_sound_icon if theme_type == 'Default' else white_sound_icon
-                
-                if is_hover(mode_button,pos):
-                    theme_type = 'Default' if theme_type == 'Synth' else 'Synth'
-                    if theme_type == 'Default':
-                        mode_button["image"] = black_day_icon
-                        back_button["image"] = black_back_icon
-                        sound_button["image"] = black_mute_icon if muted else black_sound_icon
-                        
-                    else:
-                        mode_button["image"] = white_night_icon
-                        back_button["image"] = white_back_icon
-                        sound_button["image"] = white_mute_icon if muted else white_sound_icon
-                    
-                    grid = make_grid(ROWS, width, theme_type)
-                    
-                elif algorithms[0].is_hover(pos):
-                    algorithms[0].toggle_color()
-                    output.set_text1("Breath First Search")
-                    output.set_text4(BFS)
-                    output.draw(win, outline=(0, 0, 0),theme_type=theme_type)
-                    search_algorithm = prepare_for_search(weighted,start,end,grid,maze_bfs,algorithms,0)
 
                 elif algorithms[1].is_hover(pos):
                     algorithms[1].toggle_color()
@@ -252,19 +182,8 @@ def main(win, width):
                     grid = make_grid(ROWS, width, theme_type)
                     start = None
                     end = None
-                    maze_gen_algorithm = prepare_for_maze(maze_gen_dfs, output, win, grid, ROWS, width, algorithms, mazes, back_button, options,theme_type)
+                    maze_gen_algorithm = prepare_for_maze(maze_gen_dfs, output, win, grid, ROWS, width, algorithms, mazes, back_button, mode_button, options, theme_type)
 
-                elif mazes[1].is_hover(pos):
-                    output.set_text1("Random Generation")
-                    output.set_text4(RANDOM)
-                    output.set_text2("")
-                    output.draw(win, outline=BLACK,theme_type=theme_type)
-                    pygame.display.update()
-                    grid = make_grid(ROWS, width, theme_type)
-                    start = None
-                    end = None
-                    maze_gen_algorithm = prepare_for_maze(maze_gen_random, output, win, grid, ROWS, width, algorithms, mazes, back_button, options,theme_type)
-                
                 elif options[0].is_hover(pos):
                     output.set_text1("")
                     output.set_text2("")
